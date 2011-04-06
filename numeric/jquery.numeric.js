@@ -27,7 +27,7 @@ $.fn.numeric = function(decimal, callback)
 {
 	decimal = (decimal === false) ? "" : decimal || ".";
 	callback = typeof callback == "function" ? callback : function(){};
-	return this.data("numeric.decimal", decimal).data("numeric.callback", callback).keypress($.fn.numeric.keypress).blur($.fn.numeric.blur);
+	return this.data("numeric.decimal", decimal).data("numeric.callback", callback).keypress($.fn.numeric.keypress).blur($.fn.numeric.blur).keyup($.fn.numeric.keyup);
 }
 
 $.fn.numeric.keypress = function(e)
@@ -43,17 +43,22 @@ $.fn.numeric.keypress = function(e)
 	{
 		return false;
 	}
+	//fix macosx command+c command+v
+	var ctrlKey = e.ctrlKey;
+	if((navigator.appVersion.indexOf("Mac")!==-1)){
+		ctrlKey = e.metaKey;
+	}
 	var allow = false;
 	// allow Ctrl+A
-	if((e.ctrlKey && key == 97 /* firefox */) || (e.ctrlKey && key == 65) /* opera */) return true;
+	if((ctrlKey && key == 97 /* firefox */) || (ctrlKey && key == 65) /* opera */) return true;
 	// allow Ctrl+X (cut)
-	if((e.ctrlKey && key == 120 /* firefox */) || (e.ctrlKey && key == 88) /* opera */) return true;
+	if((ctrlKey && key == 120 /* firefox */) || (ctrlKey && key == 88) /* opera */) return true;
 	// allow Ctrl+C (copy)
-	if((e.ctrlKey && key == 99 /* firefox */) || (e.ctrlKey && key == 67) /* opera */) return true;
+	if((ctrlKey && key == 99 /* firefox */) || (ctrlKey && key == 67) /* opera */) return true;
 	// allow Ctrl+Z (undo)
-	if((e.ctrlKey && key == 122 /* firefox */) || (e.ctrlKey && key == 90) /* opera */) return true;
+	if((ctrlKey && key == 122 /* firefox */) || (ctrlKey && key == 90) /* opera */) return true;
 	// allow or deny Ctrl+V (paste), Shift+Ins
-	if((e.ctrlKey && key == 118 /* firefox */) || (e.ctrlKey && key == 86) /* opera */
+	if((ctrlKey && key == 118 /* firefox */) || (ctrlKey && key == 86) /* opera */
 	|| (e.shiftKey && key == 45)) return true;
 	// if a number was not pressed
 	if(key < 48 || key > 57)
@@ -133,7 +138,10 @@ $.fn.numeric.blur = function()
 		}
 	}
 }
-
+$.fn.numeric.keyup = function()
+{
+	$(this).val($(this).val().replace(/\D+/g,"")); //fix no numeric values
+}
 $.fn.removeNumeric = function()
 {
 	return this.data("numeric.decimal", null).data("numeric.callback", null).unbind("keypress", $.fn.numeric.keypress).unbind("blur", $.fn.numeric.blur);
